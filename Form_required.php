@@ -9,8 +9,8 @@
     </head>
 <body>
 <?php
-$nameEr=$emailEr=$addressEr="";
-$name=$email=$address="";
+$nameEr=$emailEr=$addressEr=$imageEr="";
+$name=$email=$address=$image="";
 if($_SERVER['REQUEST_METHOD']=="POST"){
     if(empty($_POST['name'])){
         $nameEr="Required username";
@@ -51,30 +51,47 @@ function test_input($data){
 
 <?php
 $upload_dir= "uploads/";
-$target_file= $upload_dir.basename($_FILES['filetoupload']['nam']);
+$target_file= $upload_dir . basename($_FILES['filetoupload']['name']);
 $uploadOK=1;
-$imageFileType=strtolower(pathinfo($target_file,FILEINFO_EXTENSION));
+$imageFileType=strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
 
 if(isset($_POST["submit"])){
-    $check=getimagesize($_FILES['filetoupload']['nam_tmp']);
-    if($check !=flase){
-        echo "your file is an image".$check["mime"].".";
+    $check=getimagesize($_FILES['filetoupload']['tmp_name']);
+    if($check !=false){
+        $image= "your file is an image".$check["mime"].".";
+       
         $uploadOK=1;
     }else{
-        echo "your file is not an image";
+        $imageEr= "your file is not an image";
+        
         $uploadOK=0;
-        
-
     }
-}
+}    
     
-    
-    if(file_exists($target_file));{
-        
+    if(file_exists($target_file)){
+        $image="$target_file is already exist";
+        $uploadOK=0;
+    }
+    if($_FILES["filetoupload"]["size"]>50){
+        $imageEr="$target_file is heavy in size";
+        $uploadOK=0;
+        }
+
+    if($imageFileType !="png" && $imageFileType !="jpeg"){
+        $imageEr="$target_file is not in required file format";
+        $uploadOK=0;
     }
 
-
-
+    if($uploadOK==0)
+        $imageEr="the file is not uploaded";
+    
+    else{
+        if(move_uploaded_file($_FILES["filetoupload"]["tmp_name"],$target_file)){
+            $image="The file is" . htmlspecialchars(basename["filetoupload"]["name"]) ."uploaded";
+        }else{
+            $imageEr=  htmlspecialchars(basename($_FILES["filetoupload"]["name"])) . "file is not uploaded";
+        }
+    }
 ?>
 
 
@@ -83,7 +100,7 @@ if(isset($_POST["submit"])){
 
 <h1>FOrm validation </h1>
 <p><span class="error">****char required******</span></p>
-<form method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" enctype="multipart/from-data">
+<form method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" enctype="multipart/form-data">
     Name: <input type="text" name="name">
     <span class="error">*<?php echo $nameEr; ?> </span>
     <br><br>
@@ -100,6 +117,7 @@ if(isset($_POST["submit"])){
     <h2 class="upload">Upload any image file hai!!!:</h2>
     <input class="upload" type="file" name="filetoupload" id="filetoupload">
     <input type="submit" value="upload Image" name="submit">
+    <span class="error">*<?php echo $imageEr; ?></span>
 </form>
 
 <?php
@@ -110,6 +128,8 @@ echo $email;
 echo "<br>";
 echo $address;
 echo"<br>";
+echo $image;
+echo "<br";
 
 $myfile=fopen("word.txt","r") or die ("i cant open file");
 
